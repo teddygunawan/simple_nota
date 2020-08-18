@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
-
+import React from 'react';
 function ProductInput(props) {
-  return (
-    <div>
-      <div className="field">
-        <div className="control">
-          <input className="input is-primary" type="text" placeholder="Primary input" value={props.value} onChange={e => props.setValue(e.target.value)} />
-        </div>
-      </div>
-    </div>
-  );
+    return (
+        <tr>
+            <td>
+                <input className="input" type="text" placeholder="Nama Produk" value={props.product.name} onChange={e => props.handleInput(e, props.index, 'name')} />
+            </td>
+            <td>
+                <input className="input is-half" type="text" placeholder="Unit" value={props.product.unit} onChange={e => props.handleInput(e, props.index, 'unit')} />
+            </td>
+            <td>
+                <input className="input" type="text" placeholder="Harga per Kg" value={props.product.price} onChange={e => props.handleInput(e, props.index, 'price')} />
+            </td>
+            <td>
+                <input className="button is-danger" type="button" value="Delete" onClick={e => props.deleteProduct(props.index)} />
+            </td>
+        </tr>
+    );
 }
 
 export default ProductInput;

@@ -19,3 +19,29 @@ code {
   width: 256px;
   height: 256px;
 }
+
+.has-background-beige {
+  background-color: beige;
+}
+
+.border-black {
+  padding:15px 15px 10px 15px;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-top-color: rgba(0, 0, 0, 0.125);
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-right-color: rgba(0, 0, 0, 0.125);
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-bottom-color: rgba(0, 0, 0, 0.125);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-left-color: rgba(0, 0, 0, 0.125);
+  border-left-style: solid;
+  border-left-width: 1px;
+  border-image-source: initial;
+  border-image-slice: initial;
+  border-image-width: initial;
+  border-image-outset: initial;
+  border-image-repeat: initial;
+}
