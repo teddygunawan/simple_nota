@@ -1,33 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { toMoney, toNumber } from '../utils/helpers'
 import ProductInput from '../components/ProductInput';
 const ipcRenderer = window.require('electron').ipcRenderer;
 function Product(props) {
   let [products, setProducts] = useState([])
   let identities = useRef({})
+
+  /* Initialize products and identities hook and attach enter listener */
   useEffect(() => {
     ipcRenderer.invoke('get-products').then(data => {
-      setProducts(data.products)
-      identities.current = data.identities
+      if (data.products && data.identities) {
+        setProducts(data.products)
+        identities.current = data.identities
+      }
     });
   }, []);
 
   let addProduct = () => {
     identities.current["product_id"] += 1
     setProducts([
-      ...products,
       {
         "id": identities.current["product_id"].toString(),
         "name": "",
-        "price": 0,
+        "price": "",
         "unit": "Pcs"
-      }
+      },
+      ...products
     ]);
   }
+  
 
-  let handleInput = (e, index, key) => {
+  let onInput = (e, index, key) => {
     e.preventDefault()
     let newArr = [...products]
     newArr[index][key] = e.target.value
+    if (key === 'price') {
+      newArr[index][key] = toMoney(newArr[index][key])
+    }
     setProducts(newArr)
   }
 
@@ -36,6 +45,13 @@ function Product(props) {
       products,
       "identities": identities.current
     }
+    data.products.sort((a, b) => {
+      if (a.name < b.name)
+        return -1
+      else
+        return 1
+    })
+    data.products = data.products.filter(product => product.name.trim() !== "")
     ipcRenderer.invoke('save-products', data).then(status => {
 
     });
@@ -47,21 +63,7 @@ function Product(props) {
     setProducts(tempArr)
   }
   let productsDisplay = products.map((product, index) => (
-    <ProductInput key={product.id} handleInput={handleInput} product={product} index={index} deleteProduct={deleteProduct} /> 
-    // <tr key={product.id}>
-    //   <td>
-    //     <input className="input" type="text" placeholder="Nama Produk" value={product.name} onChange={e => handleInput(e, index, 'name')} />
-    //   </td>
-    //   <td>
-    //     <input className="input is-half" type="text" placeholder="Unit" value={product.unit} onChange={e => handleInput(e, index, 'unit')} />
-    //   </td>
-    //   <td>
-    //     <input className="input" type="text" placeholder="Harga per Kg" value={product.price} onChange={e => handleInput(e, index, 'price')} />
-    //   </td>
-    //   <td>
-    //     <input className="button is-danger" type="button" value="Delete" onClick={e => deleteProduct(index)} />
-    //   </td>
-    // </tr>
+    <ProductInput key={product.id} handleInput={onInput} product={product} index={index} deleteProduct={deleteProduct} />
   ))
   return (
     <div>
@@ -75,13 +77,11 @@ function Product(props) {
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td><input className="button is-info" type="button" value="Add" onClick={addProduct} /></td>
+          </tr>
           {productsDisplay}
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3"><input className="button is-info" type="button" value="Add" onClick={addProduct} /></td>
-          </tr>
-        </tfoot>
       </table>
       <div class="columns">
         <div class="column has-text-right">
@@ -91,5 +91,4 @@ function Product(props) {
     </div>
   );
 }
-
 export default Product;

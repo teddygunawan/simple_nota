@@ -11,8 +11,10 @@ function ProductInput(props) {
             <td>
                 <input className="input" type="text" placeholder="Harga per Kg" value={props.product.price} onChange={e => props.handleInput(e, props.index, 'price')} />
             </td>
-            <td>
-                <input className="button is-danger" type="button" value="Delete" onClick={e => props.deleteProduct(props.index)} />
+            <td className="has-text-centered column-minimum">
+                <button type="button" className="button is-danger" onClick={e => props.deleteProduct(props.index)}>
+                    <i class="fas fa-trash"></i>
+                </button>
             </td>
         </tr>
     );

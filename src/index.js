@@ -1,11 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import '@fortawesome/fontawesome-free/js/all.js';
 import './index.scss';
 import Nota from './pages/Nota';
 import Product from './pages/Product';
+import brand from "./assets/brand.png";
 import * as serviceWorker from './serviceWorker';
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Switch,
   Route,
   Link
@@ -17,7 +19,7 @@ ReactDOM.render(
       <nav className="navbar is-primary" role="navigation" aria-label="main navigation">
         <div className="navbar-brand">
           <Link className="navbar-item" to="/">
-            <img src="/brand.png" alt="Brand"/>
+            <img src={brand} alt="Brand" />
           </Link>
         </div>
 
@@ -36,15 +38,15 @@ ReactDOM.render(
 
         {/* Make sure to put the most matching at the bottom as it will be executed otherwise. E.g "/" should be at the bottom most. 
                     Otherwise, try to use exact instead */}
-        <div className="border-black">
-        <Switch>
-          <Route exact path="/">
-            <Nota />
-          </Route>
-          <Route path="/products">
-            <Product />
-          </Route>
-        </Switch>
+        <div className="border-box">
+          <Switch>
+            <Route exact path="/">
+              <Nota />
+            </Route>
+            <Route path="/products">
+              <Product />
+            </Route>
+          </Switch>
         </div>
       </div>
     </Router>

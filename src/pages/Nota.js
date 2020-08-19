@@ -1,119 +1,200 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Select from 'react-select';
+import productCartInput from '../components/ProductCartInput'
+import { toMoney, toNumber } from '../utils/helpers'
 import './Nota.scss';
+import brand from "../assets/brand.png";
+import ProductCartInput from '../components/ProductCartInput';
 const ipcRenderer = window.require('electron').ipcRenderer;
 
 function Nota(props) {
   let [productCart, setProductCart] = useState([])
   let [products, setProducts] = useState([])
-  let addedProductId = useRef([])
-  let selectedProduct = useRef({ "name": "", "id": "" })
   let [productSelect, setproductSelect] = useState(null)
+  let [isPrinting, setIsPrinting] = useState(false)
+  let [isShowing, setIsShowing] = useState({ "rekening": true })
+  let [customer, setCustomer] = useState({
+    "name": "",
+    "phone": "",
+    "address": ""
+  })
+  let [grandTotal, setGrandTotal] = useState("")
+  let addedProductId = useRef([])
   useEffect(() => {
     ipcRenderer.invoke('get-products').then(data => {
-      setProducts(data.products)
+      if (data.products)
+        setProducts(data.products)
     });
 
-    window.addEventListener("keyup", function(e) { 
-      if (e.ctrlKey &&  e.which === 83) {
+    let printOnKeyup = (e) => {
+      /* CTRL + s */
+      if (e.ctrlKey && e.which === 83) {
         ipcRenderer.send('print-to-pdf')
       }
-  });
-  }, []);
+    }
+
+    window.addEventListener("keyup", printOnKeyup);
+    return () => {
+      window.removeEventListener('keyup', printOnKeyup);
+    }
+  }, [])
 
   useEffect(() => {
-    setproductSelect(products.map((product, index) => {
-      if (!addedProductId.current.includes(product.id)) {
-        return <option key={product.id} value={product.id}>{product.name}</option>
-      }
-    }))
-  }, [productCart, products]);
+    setproductSelect(products.filter((product, index) =>
+      !addedProductId.current.includes(product.id)
+    ))
 
-  let addProduct = () => {
-    if (selectedProduct.current.id !== "") {
-      setProductCart([
-        ...productCart,
-        selectedProduct.current
-      ])
-      addedProductId.current.push(selectedProduct.current.id)
-      selectedProduct.current = { name: "", id: "" }
+  }, [productCart, products])
 
-    }
-  }
+  useEffect(() => {
+    let total = productCart.reduce(
+      (accumulator, product) =>
+        accumulator + (toNumber(product.quantity) * toNumber(product.price))
+      , 0)
+    setGrandTotal(toMoney(total))
+  }, [productCart])
 
-  let onProductSelect = (e) => {
-    selectedProduct.current = products.find(product => product.id === e.target.value)
-  }
-
-  let handleChange = (e, index) => {
+  let onProductInput = (e, index) => {
     let tempArr = [...productCart]
     tempArr[index]["quantity"] = e.target.value
-    tempArr[index]["total"] = e.target.value * tempArr[index]["price"]
+    tempArr[index]["total"] = e.target.value * toNumber(tempArr[index]["price"])
+    tempArr[index]["total"] = toMoney(tempArr[index]["total"])
+    setProductCart(tempArr)
+  }
+
+  let onCustomerInput = (e) => {
+    let tempArr = { ...customer }
+    tempArr[e.target.name] = e.target.value
+    setCustomer(tempArr)
+  }
+
+  let onProductSelect = (selectedProduct) => {
+    selectedProduct = {
+      ...selectedProduct,
+      "quantity": 0,
+      "total": 0
+    }
+    setProductCart([
+      ...productCart,
+      selectedProduct
+    ])
+    addedProductId.current.push(selectedProduct.id)
+  }
+
+  let deleteProduct = (id) => {
+    let productIndex = productCart.findIndex(product => product.id === id)
+    let tempArr = [...productCart]
+    tempArr.splice(productIndex, 1)
+    addedProductId.current.splice(addedProductId.current.indexOf(id))
     setProductCart(tempArr)
   }
 
   let print = () => {
-    ipcRenderer.send('print-to-pdf')
+    setIsPrinting(true)
+    ipcRenderer.invoke('print-to-pdf').then(() => setIsPrinting(false))
   }
 
-  let productInputs = productCart.map((product, index) =>
+  let productCartInputs = productCart.map((product, index) =>
     (
-      <tr key={product.id}>
-        <td>{product.name}</td>
-        <td>{product.price}</td>
-        <td><input className="input" type="text" onChange={e => handleChange(e, index)} /></td>
-        <td>Kg</td>
-        <td>{product.total}</td>
-      </tr>
+      <ProductCartInput key={product.id} product={product} isPrinting={isPrinting} index={index} handleInput={onProductInput} deleteProduct={deleteProduct} />
     )
   )
 
   return (
-    <div>
-      <img alt="brand" className="image is-128x128" src="/brand.png" />
-      <div className="columns mt-1">
+    <div className="mb-5">
+      <div className="columns">
         <div className="column">
-          Tanggal: {new Date().toISOString().slice(0, 10)} <br />
-          Nama: Teddy Gunawan<br />
-          Alamat: Jalan Cempaka Bawah No.6B<br />
-          No HP: 0895704416769
+          <img alt="brand" className="image is-128x128" src={brand} />
+        </div>
+        <div className="column has-text-right">
+          <label class="checkbox">
+            <input type="checkbox" onChange={e => setIsShowing(e.target.value)} />
+             Rekening
+          </label>
         </div>
       </div>
-      <table className="table is-fullwidth is-bordered">
+      <div className="columns mt-2 py-3 border-top">
+        <div className={"column" + (isPrinting ? "" : " is-one-quarter")}>
+          Tanggal: {new Date().toISOString().slice(0, 10)} <br />
+          Nama:
+          {isPrinting
+            ? customer.name
+            : <input type="text" className="input" name="name" value={customer.name} onChange={onCustomerInput} />} <br />
+          Alamat:
+          {isPrinting
+            ? customer.address
+            : <input type="text" className="input" name="address" value={customer.address} onChange={onCustomerInput} />} <br />
+          No HP:
+          {isPrinting
+            ? customer.phone
+            : <input type="text" className="input" name="phone" value={customer.phone} onChange={onCustomerInput} />}
+        </div>
+      </div><hr />
+
+      {isPrinting ? "" :
+        <div className="columns">
+          <div className="column">
+            <Select
+              value=""
+              onChange={onProductSelect}
+              options={productSelect}
+              getOptionLabel={(option) => option.name}
+              getOptionValue={(option) => option.id} />
+          </div>
+        </div>
+      }
+      <table className="table is-fullwidth is-bordered is-narrow mb-5">
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Harga per Kg</th>
-            <th>Jumlah</th>
-            <th>Unit</th>
-            <th>Total</th>
+            {isPrinting ? null : <th className="column-minimum">Option</th>}
+            <th className="column-big">Item</th>
+            <th className="column-small">Unit</th>
+            <th className="column-small">Harga</th>
+            <th className="column-small">Jumlah</th>
+            <th className="column-medium">Total</th>
           </tr>
         </thead>
         <tbody>
-          {productInputs}
+          {productCartInputs}
         </tbody>
         <tfoot>
-          <tr>
-            <td>
-              <div className="columns">
-                <div className="column">
-                  <div className="control is-expanded">
-                    <div className="select is-fullwidth has-full">
-                      <select value={selectedProduct.id} onChange={onProductSelect}>
-                        <option value=""></option>
-                        {productSelect}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className="column">
-                  <input className="button is-info" type="button" value="Add" onClick={addProduct} />
-                </div>
-              </div>
-            </td>
-          </tr>
+          {productCart.length > 0
+            ?
+            <tr>
+              <td className="has-text-right has-background-gray" colspan="5">Grand Total</td>
+              <td>{grandTotal}</td>
+            </tr>
+            :
+            null}
         </tfoot>
       </table>
+      <div class="has-text-right">
+        {
+          isPrinting
+            ? null
+            :
+            <button type="button" className="button is-success" onClick={print}>
+              <i class="fas fa-print"></i> Print
+            </button>
+        }
+      </div>
+
+      {isShowing.rekening ?
+        <p className="has-text-danger">
+          Harap melakukan pembayaran ke <br />
+          BCA 4840084286. <br />
+          An: Liong Christine Tinche <br />
+          Agar barang bisa segera disiapkan. Terima kasih.
+
+      </p> : null}
+      <fieldset>
+        <legend>Notes</legend>
+        Pada suatu hari
+      </fieldset>
+      {/* <textarea class="textarea" placeholder="e.g. Hello world"></textarea> */}
+
     </div>
+
   );
 }
 

@@ -1,6 +1,5 @@
 @charset "utf-8";
 @import "../node_modules/bulma/bulma.sass";
-
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -20,28 +19,58 @@ code {
   height: 256px;
 }
 
-.has-background-beige {
-  background-color: beige;
+.column {
+  &-big {
+    max-width: 25%;
+  }
+  &-medium {
+    width: 15%;
+  }
+  &-small {
+    width: 10%;
+  }
+  &-minimum {
+    width: 1%;
+    white-space: nowrap;
+  }
 }
 
-.border-black {
-  padding:15px 15px 10px 15px;
-  border: 1px solid rgba(0, 0, 0, 0.125);
-  border-top-color: rgba(0, 0, 0, 0.125);
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-right-color: rgba(0, 0, 0, 0.125);
-  border-right-style: solid;
-  border-right-width: 1px;
-  border-bottom-color: rgba(0, 0, 0, 0.125);
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
-  border-left-color: rgba(0, 0, 0, 0.125);
-  border-left-style: solid;
-  border-left-width: 1px;
-  border-image-source: initial;
-  border-image-slice: initial;
-  border-image-width: initial;
-  border-image-outset: initial;
-  border-image-repeat: initial;
+
+.border {
+  &-top {
+    border-top: 1px solid black;
+  }
+  &-bottom {
+    border-bottom: 1px solid black;
+  }
+  &-y {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+  }
+  &-box{
+    padding: 15px 15px 10px 15px;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-top-color: rgba(0, 0, 0, 0.125);
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-right-color: rgba(0, 0, 0, 0.125);
+    border-right-style: solid;
+    border-right-width: 1px;
+    border-bottom-color: rgba(0, 0, 0, 0.125);
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-left-color: rgba(0, 0, 0, 0.125);
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-image-source: initial;
+    border-image-slice: initial;
+    border-image-width: initial;
+    border-image-outset: initial;
+    border-image-repeat: initial;
+
+  }
+}
+
+.has-background-beige {
+  background-color: beige;
 }
